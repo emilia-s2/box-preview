@@ -3,7 +3,7 @@
     "author": "Local",
     "description": "Prévia dinâmica de conteúdos e variantes de caixas pelo DataCenter do cliente conectado, sem consumir itens.",
     "version": "0.3.1",
-    "disableAutoUpdate": true,
+    "disableAutoUpdate": false,
     "options": {
         "niceName": "Box Preview",
         "guiName": "Prévia de caixas",
@@ -11,5 +11,8 @@
         "settingsVersion": 1,
         "settingsFile": "config.json",
         "settingsMigrator": "settings_migrator.js"
-    }
+    },
+    "servers": [
+        "https://raw.githubusercontent.com/emilia-s2/box-preview/main/"
+    ]
 }

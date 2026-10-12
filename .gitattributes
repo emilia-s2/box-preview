@@ -1,0 +1,4 @@
+# BEGIN Box Preview: hashes do pacote
+# Manter bytes identicos ao manifest SHA-256, mesmo com core.autocrlf=true.
+* -text
+# END Box Preview: hashes do pacote

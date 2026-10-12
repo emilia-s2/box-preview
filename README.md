@@ -12,6 +12,14 @@ A prévia permanece sobre o jogo até fechar pelo × ou Escape. Mostra o conteú
 
 A leitura dentro das propriedades do painel também existe, mas pode falhar se o título não for reconhecido. Alt + clique diretamente no texto do link do chat não é um fluxo confirmado. O uso pelo ícone do tooltip foi confirmado no jogo na **0.2.14**.
 
+## Experimentar a roupa
+
+Clique no botão de olho ao lado de uma variante compatível para abrir a prévia nativa de aparência do TERA, como no broker. O mod oculta suas janelas para deixar o personagem visível. Feche a prévia pelos controles do jogo e use Alt + clique esquerdo para consultar outra caixa.
+
+Skins de armas também usam esse botão, com a classe conferida pelo tipo e pelas restrições do item no cliente.
+
+O botão aparece para roupas e acessórios com modelo visual confirmado no cliente e restrições compatíveis de raça, gênero e classe. Ele envia apenas `S_PREVIEW_ITEM` ao cliente; não exige possuir a roupa, não compra, não abre a caixa nem equipa itens.
+
 ## Idioma
 
 O seletor de idioma fica na janela completa (**Ctrl+Alt+B**) e oferece **Automático**, **Português**, **English** e **Español (Latinoamérica)**. A janela pequena segue a mesma preferência, sem seletor próprio. No modo automático, o idioma segue o Windows; idiomas não suportados usam inglês. Uma escolha manual tem prioridade e atualiza as duas janelas imediatamente, sem consultar novamente o item.

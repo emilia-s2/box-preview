@@ -37,6 +37,7 @@
 !/lib/rewards.js
 !/lib/shortcut.js
 !/lib/title.js
+!/lib/try-on.js
 !/native/input.cs
 !/native/input.ps1
 !/native/ocr.ps1
@@ -48,6 +49,7 @@
 !/ui/popup.html
 !/ui/popup.js
 !/ui/style.css
+!/ui/try-on.js
 # Dados privados e artefatos locais, inclusive dentro das pastas de runtime.
 **/config.json
 **/config.json.preferences-*.tmp

@@ -2,7 +2,7 @@
     "name": "box-preview",
     "author": "emilia-s2",
     "description": "Prévia dinâmica de conteúdos e variantes de caixas pelo DataCenter do cliente conectado, sem consumir itens.",
-    "version": "0.3.1",
+    "version": "0.4.1",
     "disableAutoUpdate": false,
     "options": {
         "niceName": "Box Preview",

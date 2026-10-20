@@ -60,6 +60,8 @@ Na 0.4.4, a conferência visual das restrições procura a borda direita do pain
 
 Na 0.4.5, a comparação aceita os booleanos `true`/`false` devolvidos por `queryData` para as propriedades de troca e armazenamento, além dos valores numéricos 0/1. As versões anteriores descartavam esses metadados válidos. Campos ausentes ou inválidos continuam impedindo uma escolha sem evidência; a correção não altera os conteúdos nem inventa um ID exato para caixas equivalentes.
 
+Na 0.4.6, a identificação do personagem corrige a inversão entre Elfo (`103xx/104xx`) e Castanic (`107xx/108xx`). O filtro de variantes e o botão de experimentar passam a usar a raça correta. A tabela foi conferida com os 99 templates de personagem de `UserData` do cliente Asura; os nomes e as restrições das roupas continuam vindo do cliente.
+
 As variantes vêm de `ItemConversion / SeedItem / FixedItem` do DataCenter conectado. No Asura, quando uma caixa conhecida pelo cliente não declara sua conversão, o mod pode consultar o catálogo público `tera-asura.com/en/item/ID`, conferindo ID e nomes com o cliente. Essa origem é informada na prévia; quantidades e probabilidades ausentes são omitidas. A consulta ao catálogo requer conexão com o site.
 
 ## Limites e diagnóstico

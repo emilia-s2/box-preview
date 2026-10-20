@@ -4,7 +4,7 @@ function action(name,data={}){bridge.send('action',name,data);}
 function image(element,url){element.hidden=!url;if(url)element.src=url;else element.removeAttribute('src');}
 function results(){
     const preview=state&&state.preview;$('result').hidden=!preview;if(!preview)return;
-    $('box-name').textContent=preview.box.name;$('box-id').textContent='ID '+preview.box.id+' · '+t(preview.kind);image($('box-icon'),preview.box.icon);
+    $('box-name').textContent=preview.box.name;$('box-id').textContent=(preview.identification&&!preview.identification.exactId?t('IDs com conteúdo equivalente: {ids}',{ids:preview.identification.ids.join(', ')}):'ID '+preview.box.id)+' · '+t(preview.kind);image($('box-icon'),preview.box.icon);
     $('description').textContent=preview.box.description;$('source-note').textContent=t(preview.message)+(preview.unsupported?' '+t('Há {count} regra(s) não interpretada(s); a lista pode estar incompleta.',{count:preview.unsupported}):'');
     $('only-mine').disabled=!state.context.identity;
     const items=preview.entries.filter(entry=>!$('only-mine').checked||entry.compatible!==false);$('count').textContent=t('{count} de {total} variantes',{count:items.length,total:preview.entries.length});$('items').textContent='';

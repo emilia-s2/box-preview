@@ -37,6 +37,7 @@
 !/lib/rewards.js
 !/lib/shortcut.js
 !/lib/title.js
+!/lib/tooltip-properties.js
 !/lib/try-on.js
 !/native/input.cs
 !/native/input.ps1

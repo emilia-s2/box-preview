@@ -11,14 +11,9 @@ using System.Windows.Forms;
 public static partial class BoxPreviewInput {
  [StructLayout(LayoutKind.Sequential)] struct POINT { public int x,y; }
  [StructLayout(LayoutKind.Sequential)] struct RECT { public int left,top,right,bottom; }
- [StructLayout(LayoutKind.Sequential)] struct KEYBOARD { public uint key,scan,flags,time; public UIntPtr extra; }
  [StructLayout(LayoutKind.Sequential)] struct DEVICE { public ushort page,usage; public uint flags; public IntPtr window; }
  [StructLayout(LayoutKind.Sequential)] struct HEADER { public uint type,size; public IntPtr device,message; }
- delegate IntPtr Hook(int code,IntPtr message,IntPtr data);
  delegate bool EnumWindow(IntPtr window,IntPtr data);
- [DllImport("user32.dll",SetLastError=true)] static extern IntPtr SetWindowsHookEx(int type,Hook callback,IntPtr module,uint thread);
- [DllImport("user32.dll")] static extern bool UnhookWindowsHookEx(IntPtr hook);
- [DllImport("user32.dll")] static extern IntPtr CallNextHookEx(IntPtr hook,int code,IntPtr message,IntPtr data);
  [DllImport("user32.dll")] static extern short GetAsyncKeyState(int key);
  [DllImport("user32.dll")] static extern IntPtr GetForegroundWindow();
  [DllImport("user32.dll")] static extern bool GetCursorPos(out POINT point);
@@ -35,20 +30,16 @@ public static partial class BoxPreviewInput {
  [DllImport("user32.dll")] static extern bool GetWindowRect(IntPtr window,out RECT rect);
  [DllImport("user32.dll",SetLastError=true)] static extern bool RegisterRawInputDevices(DEVICE[] devices,uint count,uint size);
  [DllImport("user32.dll")] static extern uint GetRawInputData(IntPtr input,uint command,IntPtr data,ref uint size,uint headerSize);
- [DllImport("kernel32.dll")] static extern IntPtr GetModuleHandle(string name);
- static readonly Hook callback=Keyboard;
  static readonly Stopwatch clock=Stopwatch.StartNew();
  static readonly ManualResetEventSlim prepared=new ManualResetEventSlim(false);
  static readonly object outputLock=new object(),signalLock=new object(),snapshotLock=new object();
- static IntPtr installed;
  static uint target,owner;
  static bool rawActive;
- static readonly ControlGesture controlGesture=new ControlGesture();
- static readonly MiddleGesture middleGesture=new MiddleGesture();
- static POINT controlPoint;static IntPtr controlWindow;static string controlSource;
+ static volatile bool middleEnabled;
+ static readonly MouseGesture mouseGesture=new MouseGesture();
  static volatile int mode;
- static int busy,sequence,repairs,accepted;
- static long lastSignal=-1000,lastRepair=-1000;
+ static int busy,sequence,accepted;
+ static long lastSignal=-1000;
  static POINT lastPoint;
  static string lastSource="none";
  static bool probe;
@@ -71,67 +62,34 @@ public static partial class BoxPreviewInput {
  }
  public static bool ProcessExists(int pid){try{using(Process process=Process.GetProcessById(pid))return true;}catch(ArgumentException){return false;}}
  public static bool ModifierHeld(short generic,short left,short right) { return (((ushort)generic|(ushort)left|(ushort)right)&0x8000)!=0; }
- // One gesture per physical Ctrl press, shared by the hook and Raw Input.
- // The short grace period allows ordinary Ctrl combinations to cancel the preview.
- public sealed class ControlGesture {
-  bool left,right,pending;long due;
-  public void Reset(bool leftHeld,bool rightHeld){left=leftHeld;right=rightHeld;pending=false;}
-  public void Cancel(){pending=false;}
-  public bool Key(int key,bool down,bool injected,bool otherModifier,long now){
-   if(injected)return false;
-   bool control=key==0xA2||key==0xA3||key==0x11;
-   if(!control){if(down)pending=false;return false;}
-   bool wasHeld=left||right;
-   if(key==0xA3)right=down;else left=down;
-   if(otherModifier){pending=false;return false;}
-   if(down&&!wasHeld){pending=true;due=now+120;return true;}
-   return false;
-  }
-  public bool Take(long now){if(!pending||now<due)return false;pending=false;return true;}
- }
- // Raw mouse button flags: middle down 0x10, middle up 0x20. Wheel rotation is 0x400/0x800.
- public sealed class MiddleGesture {
-  bool held;
-  public void Reset(bool down){held=down;}
-  public bool Buttons(ushort flags){
-   bool pressed=(flags&0x10)!=0&&!held;
-   if((flags&0x10)!=0)held=true;
-   if((flags&0x20)!=0)held=false;
-   return pressed;
+ // Observe physical mouse buttons only; modifier keys are sampled at the click.
+ public sealed class MouseGesture {
+  bool leftHeld,middleHeld;
+  public void Reset(bool left,bool middle){leftHeld=left;middleHeld=middle;}
+  public int Buttons(ushort flags,bool shift,bool otherModifier,bool middleAllowed){
+   bool left=(flags&1)!=0&&!leftHeld,middle=(flags&0x10)!=0&&!middleHeld;
+   if((flags&1)!=0)leftHeld=true;if((flags&2)!=0)leftHeld=false;
+   if((flags&0x10)!=0)middleHeld=true;if((flags&0x20)!=0)middleHeld=false;
+   if(otherModifier)return 0;
+   if(left&&shift)return 1;
+   if(middle&&!shift&&middleAllowed)return 2;
+   return 0;
   }
  }
- static void HandleMiddle(ushort buttons){
-  if(!middleGesture.Buttons(buttons))return;
-  controlGesture.Cancel();
-  if(OtherModifier())return;
+ public static bool MiddleCommand(string line){if(line=="middle 1"){middleEnabled=true;return true;}if(line=="middle 0"){middleEnabled=false;return true;}return false;}
+ public static bool MiddleEnabled(){return middleEnabled;}
+ static bool Shift(){return ModifierHeld(GetAsyncKeyState(0x10),GetAsyncKeyState(0xA0),GetAsyncKeyState(0xA1));}
+ static bool OtherModifier(){return ModifierHeld(GetAsyncKeyState(0x11),GetAsyncKeyState(0xA2),GetAsyncKeyState(0xA3))||ModifierHeld(GetAsyncKeyState(0x12),GetAsyncKeyState(0xA4),GetAsyncKeyState(0xA5))||ModifierHeld(0,GetAsyncKeyState(0x5B),GetAsyncKeyState(0x5C));}
+ static void HandleMouse(ushort buttons){
+  int gesture=mouseGesture.Buttons(buttons,Shift(),OtherModifier(),middleEnabled);if(gesture==0)return;
   POINT point;IntPtr window;uint foreground,under;
   GetWindowThreadProcessId(GetForegroundWindow(),out foreground);
   if(!GetCursorPos(out point)||!Eligible(point,true,out window))return;
   GetWindowThreadProcessId(window,out under);
-  if(TriggerAllowed(foreground,under,target))Signal(window,point,"middle-raw");
+  if(TriggerAllowed(foreground,under,target))Signal(window,point,gesture==1?"shift-left-raw":"middle-raw");
  }
- static bool Control(){return ModifierHeld(GetAsyncKeyState(0x11),GetAsyncKeyState(0xA2),GetAsyncKeyState(0xA3));}
- static bool OtherModifier(){return ModifierHeld(GetAsyncKeyState(0x12),GetAsyncKeyState(0xA4),GetAsyncKeyState(0xA5))||ModifierHeld(GetAsyncKeyState(0x10),GetAsyncKeyState(0xA0),GetAsyncKeyState(0xA1))||ModifierHeld(0,GetAsyncKeyState(0x5B),GetAsyncKeyState(0x5C));}
  public static bool TriggerAllowed(uint foreground,uint under,uint expected){return expected>0&&foreground==expected&&under==expected;}
  public static bool CaptureAllowed(uint foreground,uint under,uint expected,uint parent){return expected>0&&under==expected&&(foreground==expected||(parent>0&&foreground==parent));}
- static void HandleKey(int key,bool down,bool injected,string source){
-  if(!controlGesture.Key(key,down,injected,OtherModifier(),clock.ElapsedMilliseconds))return;
-  POINT point;IntPtr window;uint foreground,under;
-  GetWindowThreadProcessId(GetForegroundWindow(),out foreground);
-  if(!GetCursorPos(out point)||!Eligible(point,true,out window)){controlGesture.Cancel();return;}
-  GetWindowThreadProcessId(window,out under);
-  if(!TriggerAllowed(foreground,under,target)){controlGesture.Cancel();return;}
-  controlPoint=point;controlWindow=window;controlSource=source;ScheduleSnapshot();
- }
- static void PollControl(){
-  if(!controlGesture.Take(clock.ElapsedMilliseconds))return;
-  if(OtherModifier())return;
-  POINT point;IntPtr window;uint foreground,under;
-  GetWindowThreadProcessId(GetForegroundWindow(),out foreground);
-  if(!GetCursorPos(out point)||!CursorStable(controlPoint.x,controlPoint.y,point.x,point.y)||!Eligible(point,true,out window)||window!=controlWindow)return;
-  GetWindowThreadProcessId(window,out under);
-  if(TriggerAllowed(foreground,under,target))Signal(window,controlPoint,controlSource);
- }
 
  public static bool CursorStable(int x,int y,int currentX,int currentY) { long dx=(long)x-currentX,dy=(long)y-currentY;return Math.Abs(dx)<=12&&Math.Abs(dy)<=12&&dx*dx+dy*dy<=144; }
  public static bool SnapshotMatches(long age,int x,int y,int currentX,int currentY,bool sameWindow) { return sameWindow&&age>=0&&age<=300&&Math.Abs((long)x-currentX)<=2&&Math.Abs((long)y-currentY)<=2; }
@@ -144,12 +102,7 @@ public static partial class BoxPreviewInput {
  public static bool Duplicate(string source,string previous,long delta,int x,int y,int oldX,int oldY) { return source!=previous&&delta>=0&&delta<120&&Math.Abs(x-oldX)<=2&&Math.Abs(y-oldY)<=2; }
  public static int Command(string line,int ticket) { string[] parts=line.Split(' ');int received;if(parts.Length!=2||!int.TryParse(parts[1],out received)||received!=ticket)return -1;return parts[0]=="direct"?2:parts[0]=="capture"?1:parts[0]=="skip"?0:-1; }
  static void Output(string json) { lock(outputLock){Console.WriteLine(json);Console.Out.Flush();} }
- static string Health(string eventName) { return "{\"event\":\""+eventName+"\",\"version\":\"0.4.8\",\"targetPid\":"+target+",\"readerPid\":"+Process.GetCurrentProcess().Id+",\"hookRegistered\":"+(installed!=IntPtr.Zero?"true":"false")+",\"rawRegistered\":"+(rawActive?"true":"false")+",\"repairs\":"+repairs+",\"accepted\":"+accepted+",\"warmedFrames\":"+warmedFrames+",\"cachedClicks\":"+cachedClicks+",\"immediateClicks\":"+immediateClicks+",\"source\":\""+lastSource+"\"}"; }
- static void RestoreHook() {
-  if(clock.ElapsedMilliseconds-lastRepair<250)return;
-  lastRepair=clock.ElapsedMilliseconds;IntPtr replacement=SetWindowsHookEx(13,callback,GetModuleHandle(null),0);
-  if(replacement!=IntPtr.Zero){IntPtr previous=installed;installed=replacement;if(previous!=IntPtr.Zero)UnhookWindowsHookEx(previous);repairs++;}
- }
+ static string Health(string eventName) { return "{\"event\":\""+eventName+"\",\"version\":\"0.4.10\",\"targetPid\":"+target+",\"readerPid\":"+Process.GetCurrentProcess().Id+",\"hookRegistered\":"+"false"+",\"rawRegistered\":"+(rawActive?"true":"false")+",\"repairs\":"+0+",\"accepted\":"+accepted+",\"warmedFrames\":"+warmedFrames+",\"cachedClicks\":"+cachedClicks+",\"immediateClicks\":"+immediateClicks+",\"source\":\""+lastSource+"\"}"; }
  static bool Eligible(POINT point,bool alt,out IntPtr window) {
   window=GetAncestor(WindowFromPoint(point),2);uint foreground,under;
   GetWindowThreadProcessId(GetForegroundWindow(),out foreground);GetWindowThreadProcessId(window,out under);
@@ -255,21 +208,13 @@ public static partial class BoxPreviewInput {
    finally{if(clicked!=null)clicked.Dispose();if(prior!=null)prior.Dispose();Interlocked.Exchange(ref busy,0);}
   });
  }
- static IntPtr Keyboard(int code,IntPtr message,IntPtr data) {
-  if(!probe&&code>=0){int msg=message.ToInt32();if(msg==0x100||msg==0x104||msg==0x101||msg==0x105){
-   KEYBOARD key=(KEYBOARD)Marshal.PtrToStructure(data,typeof(KEYBOARD));
-   int vk=(int)key.key;if(vk==0x11)vk=(key.flags&1)!=0?0xA3:0xA2;
-   HandleKey(vk,msg==0x100||msg==0x104,(key.flags&0x10)!=0,"ctrl-hook");
-  }}
-  return CallNextHookEx(installed,code,message,data);
- }
  sealed class RawWindow:NativeWindow,IDisposable {
   readonly IntPtr buffer=Marshal.AllocHGlobal(128);
   public bool Registered {get;private set;}
   public RawWindow(){
    CreateHandle(new CreateParams{Caption="BoxPreviewInput",Parent=new IntPtr(-3)});
-   DEVICE[] devices={new DEVICE{page=1,usage=6,flags=0x100,window=Handle},new DEVICE{page=1,usage=2,flags=0x100,window=Handle}};
-   Registered=RegisterRawInputDevices(devices,2,(uint)Marshal.SizeOf(typeof(DEVICE)));
+   DEVICE[] devices={new DEVICE{page=1,usage=2,flags=0x100,window=Handle}};
+   Registered=RegisterRawInputDevices(devices,1,(uint)Marshal.SizeOf(typeof(DEVICE)));
   }
   protected override void WndProc(ref Message message){
    if(message.Msg==0xFF)Read(message.LParam);
@@ -281,14 +226,10 @@ public static partial class BoxPreviewInput {
    if(read==uint.MaxValue||read<header+8||size>128)return;
    HEADER info=(HEADER)Marshal.PtrToStructure(buffer,typeof(HEADER));int offset=(int)header;
    if(info.device==IntPtr.Zero)return;
-   if(info.type==0){if(read>=header+24)HandleMiddle((ushort)Marshal.ReadInt16(buffer,offset+4));return;}
-   if(info.type!=1||read<header+16)return;
-   ushort key=(ushort)Marshal.ReadInt16(buffer,offset+6),flags=(ushort)Marshal.ReadInt16(buffer,offset+2);
-   int vk=key;if(vk==0x11)vk=(flags&2)!=0?0xA3:0xA2;
-   HandleKey(vk,(flags&1)==0,false,"ctrl-raw");
+   if(info.type==0&&read>=header+24)HandleMouse((ushort)Marshal.ReadInt16(buffer,offset+4));
   }
   public void Dispose(){
-   if(Registered){DEVICE[] devices={new DEVICE{page=1,usage=6,flags=1},new DEVICE{page=1,usage=2,flags=1}};RegisterRawInputDevices(devices,2,(uint)Marshal.SizeOf(typeof(DEVICE)));Registered=false;}
+   if(Registered){DEVICE[] devices={new DEVICE{page=1,usage=2,flags=1}};RegisterRawInputDevices(devices,1,(uint)Marshal.SizeOf(typeof(DEVICE)));Registered=false;}
    DestroyHandle();Marshal.FreeHGlobal(buffer);
   }
  }
@@ -304,30 +245,28 @@ public static partial class BoxPreviewInput {
  }
  static void Loop(int parentPid){
   long started=clock.ElapsedMilliseconds;
-  SetProcessDPIAware();middleGesture.Reset((GetAsyncKeyState(0x04)&0x8000)!=0);controlGesture.Reset((GetAsyncKeyState(0xA2)&0x8000)!=0,(GetAsyncKeyState(0xA3)&0x8000)!=0);installed=SetWindowsHookEx(13,callback,GetModuleHandle(null),0);
+  SetProcessDPIAware();mouseGesture.Reset((GetAsyncKeyState(0x01)&0x8000)!=0,(GetAsyncKeyState(0x04)&0x8000)!=0);middleEnabled=false;
   using(RawWindow raw=new RawWindow()){
    rawActive=raw.Registered;
-   if(installed==IntPtr.Zero&&!rawActive){Output("{\"event\":\"error\",\"error\":\"O Windows não permitiu registrar Ctrl ou botão central com o cursor sobre a caixa.\"}");return;}
+   if(!rawActive){Output("{\"event\":\"error\",\"error\":\"O Windows não permitiu registrar Shift + clique esquerdo ou botão central.\"}");return;}
    Output(Health("ready"));
-   if(!probe){Thread commands=new Thread(new ThreadStart(delegate{string line;while((line=Console.ReadLine())!=null){string[] parts=line.Split(' ');int ticket;if(parts.Length==2&&parts[0]=="retry"&&int.TryParse(parts[1],out ticket)){RetryFrame(ticket);continue;}int selected=Command(line,sequence);if(selected>=0){mode=selected;prepared.Set();}}Application.Exit();}));commands.IsBackground=true;commands.Start();}
-   System.Windows.Forms.Timer timer=new System.Windows.Forms.Timer();timer.Interval=50;long nextHealth=0;bool previousControl=false;
+   if(!probe){Thread commands=new Thread(new ThreadStart(delegate{string line;while((line=Console.ReadLine())!=null){if(MiddleCommand(line))continue;string[] parts=line.Split(' ');int ticket;if(parts.Length==2&&parts[0]=="retry"&&int.TryParse(parts[1],out ticket)){RetryFrame(ticket);continue;}int selected=Command(line,sequence);if(selected>=0){mode=selected;prepared.Set();}}Application.Exit();}));commands.IsBackground=true;commands.Start();}
+   System.Windows.Forms.Timer timer=new System.Windows.Forms.Timer();timer.Interval=50;long nextHealth=0;
    timer.Tick+=delegate{
     if(probe&&clock.ElapsedMilliseconds-started>=probeDuration){Application.Exit();return;}
-    bool alt=!probe&&Control();if(alt&&!previousControl){uint foreground;GetWindowThreadProcessId(GetForegroundWindow(),out foreground);if(foreground==target||foreground==owner)RestoreHook();}previousControl=alt;if(!probe)PollControl();
-    if(!probe){POINT point=new POINT();IntPtr window=IntPtr.Zero;uint foreground;GetWindowThreadProcessId(GetForegroundWindow(),out foreground);bool eligible=foreground==target&&GetCursorPos(out point)&&Eligible(point,true,out window);if(UpdateHover(eligible,window,point,clock.ElapsedMilliseconds,alt))ScheduleSnapshot();}
+    if(!probe){POINT point=new POINT();IntPtr window=IntPtr.Zero;uint foreground;GetWindowThreadProcessId(GetForegroundWindow(),out foreground);bool eligible=foreground==target&&GetCursorPos(out point)&&Eligible(point,true,out window);if(UpdateHover(eligible,window,point,clock.ElapsedMilliseconds,false))ScheduleSnapshot();}
     if(clock.ElapsedMilliseconds<nextHealth)return;nextHealth=clock.ElapsedMilliseconds+3000;
     if(!ProcessExists(parentPid)||!ProcessExists((int)target)){Application.Exit();return;}
     string health=Health("health");ThreadPool.QueueUserWorkItem(delegate{try{Output(health);}catch{}});
    };timer.Start();
-   try{Application.Run();}finally{shuttingDown=true;DropSnapshot();timer.Stop();timer.Dispose();if(installed!=IntPtr.Zero)UnhookWindowsHookEx(installed);installed=IntPtr.Zero;rawActive=false;GC.KeepAlive(callback);}
+   try{Application.Run();}finally{shuttingDown=true;DropSnapshot();timer.Stop();timer.Dispose();rawActive=false;}
   }
  }
  public static void Run(int targetPid,int parentPid){
   using(Process game=Process.GetProcessById(targetPid))if(!game.ProcessName.Equals("TERA",StringComparison.OrdinalIgnoreCase)){Output("{\"event\":\"error\",\"error\":\"O processo alvo não é TERA.exe.\"}");return;}
   target=(uint)targetPid;owner=(uint)parentPid;
-  Thread thread=new Thread(new ThreadStart(delegate{try{Loop(parentPid);}catch{Output("{\"event\":\"error\",\"error\":\"Falha ao iniciar o leitor de teclado.\"}");}}));thread.SetApartmentState(ApartmentState.STA);thread.Start();thread.Join();
+  Thread thread=new Thread(new ThreadStart(delegate{try{Loop(parentPid);}catch{Output("{\"event\":\"error\",\"error\":\"Falha ao iniciar o leitor de mouse.\"}");}}));thread.SetApartmentState(ApartmentState.STA);thread.Start();thread.Join();
  }
- public static bool TestHook(){IntPtr test=SetWindowsHookEx(13,callback,GetModuleHandle(null),0);if(test==IntPtr.Zero)return false;bool removed=UnhookWindowsHookEx(test);GC.KeepAlive(callback);return removed;}
  public static bool TestRaw(){using(RawWindow raw=new RawWindow())return raw.Registered;}
  public static void Probe(int targetPid,int parentPid,int milliseconds){probe=true;probeDuration=Math.Min(10000,Math.Max(500,milliseconds));Run(targetPid,parentPid);}
 }

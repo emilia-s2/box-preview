@@ -15,7 +15,7 @@ function results(){
     }
 }
 bridge.on('state',value=>{
-    state=value;window.UIText.select(value,action);$('version').textContent='v'+value.version;$('server').textContent=t(value.context.server)+' · '+t('Cliente {patch}',{patch:value.context.patch});$('character').textContent=value.context.character||t('Sem personagem identificado');
+    state=value;window.UIText.select(value,action);window.UIText.inputs(value,action);$('version').textContent='v'+value.version;$('server').textContent=t(value.context.server)+' · '+t('Cliente {patch}',{patch:value.context.patch});$('character').textContent=value.context.character||t('Sem personagem identificado');
     $('status').textContent=t(value.busy?'Consultando dados do cliente…':value.tryOnError||value.error|| (value.preview?(value.preview.complete?'Prévia disponível.':'Prévia limitada aos dados disponíveis.'):'Informe um ID ou selecione uma caixa.'));$('status').className=(value.tryOnError||value.error)?'error':'';
     $('show').disabled=$('refresh').disabled=$('inventory').disabled=$('source').disabled=value.busy;
     $('capture-status').textContent=t(value.capture&&value.capture.message||'');

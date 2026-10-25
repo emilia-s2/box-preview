@@ -5,3 +5,5 @@
 #language-status{font-size:12px;color:#ffc5c0;overflow-wrap:anywhere}
 
 article>div{min-width:0;flex:1}.try-on{flex-shrink:0;align-self:center;padding:7px;line-height:0;color:#8be4e4}.try-on svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7}.try-on:focus-visible{outline:2px solid #78dcd3;outline-offset:2px}.try-on:disabled{opacity:.5;cursor:default}
+
+.input-options label{display:flex;align-items:center;gap:8px;margin:0 0 12px}.input-options input{width:16px}.input-options p{color:#e7c9a6}

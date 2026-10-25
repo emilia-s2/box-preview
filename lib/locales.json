@@ -65,7 +65,7 @@
     "Consultar contenido"
   ],
   [
-    "Deixe o tooltip da caixa visível, aponte o cursor para a caixa, aguarde o tooltip aparecer e pressione Ctrl sozinho ou aperte a rodinha (botão central). A janela de conteúdo abre sobre o TERA, sem escolher uma lista. Funciona em janela ou sem bordas; nenhum item é aberto ou comprado pelo mod. Ctrl+Alt+B abre esta GUI para consulta manual.",
+    "Deixe o tooltip da caixa visível, aponte o cursor para a caixa, aguarde o tooltip aparecer e pressione Ctrl sozinho ou aperte o Scroll (botão do meio). A janela de conteúdo abre sobre o TERA, sem escolher uma lista. Funciona em janela ou sem bordas; nenhum item é aberto ou comprado pelo mod. Ctrl+Alt+B abre esta GUI para consulta manual.",
     "Keep the box tooltip visible, point at the box, wait for its tooltip and press Ctrl alone or click the mouse wheel (middle button). The contents window opens above TERA, without selecting a list. Works in windowed or borderless mode; the mod does not open or buy items. Ctrl+Alt+B opens this window for manual lookup.",
     "Deja visible la descripción de la caja, apunta a la caja, espera su descripción y pulsa Ctrl solo o presiona la rueda (botón central). La ventana de contenido aparece sobre TERA sin seleccionar una lista. Funciona en modo ventana o sin bordes; el mod no abre ni compra objetos. Ctrl+Alt+B abre esta ventana para consultas manuales."
   ],
@@ -140,9 +140,9 @@
     "Cómo funciona esta vista previa"
   ],
   [
-    "Ctrl ou botão central com o cursor sobre a caixa é lido por um leitor externo, com uma alternativa por Raw Input. O mod não envia cliques, compra, abertura ou uso de itens ao jogo. A janela de conteúdo abre com foco sobre o TERA. Quando o proxy já recebeu o ID na posição apontada, a busca dispensa captura de tela e OCR.",
-    "Ctrl or middle-click while pointing at the box is detected by an external listener, with a Raw Input fallback. The mod does not send clicks, purchases, opening or item-use requests to the game. The contents window opens above TERA with focus. When the proxy already has the ID at the pointed position, identification does not need OCR.",
-    "Ctrl o botón central con el cursor sobre la caja se detecta con un lector externo y una alternativa por Raw Input. El mod no envía clics, compras, aperturas ni usos de objetos al juego. La ventana de contenido aparece sobre TERA con el foco. Cuando el proxy ya tiene el ID de la posición seleccionada, no se necesita OCR."
+    "Shift + clique esquerdo ou Scroll (botão do meio) com o cursor sobre o item é lido por um leitor externo, com uma alternativa por Raw Input. O mod não envia cliques, compra, abertura ou uso de itens ao jogo. A janela de conteúdo abre com foco sobre o TERA. Quando o proxy já recebeu o ID na posição apontada, a busca dispensa captura de tela e OCR.",
+    "Shift + left-click or middle-click while pointing at the item is detected by an external listener, with a Raw Input fallback. The mod does not send clicks, purchases, opening or item-use requests to the game. The contents window opens above TERA with focus. When the proxy already has the ID at the pointed position, identification does not need OCR.",
+    "Mayús + clic izquierdo o botón central con el cursor sobre el objeto se detecta con un lector externo y una alternativa por Raw Input. El mod no envía clics, compras, aperturas ni usos de objetos al juego. La ventana de contenido aparece sobre TERA con el foco. Cuando el proxy ya tiene el ID de la posición seleccionada, no se necesita OCR."
   ],
   [
     "Quando não há ID recebido, uma imagem temporária da janela é lida pelo reconhecimento de texto do Windows e descartada, sem upload ou gravação em disco. O título é associado aos nomes e IDs do cliente conectado; nomes ilegíveis ou ambíguos geram um aviso.",
@@ -1008,5 +1008,50 @@
     "Roupas, skins de armas e acessórios avulsos também podem ser consultados pelos mesmos atalhos. Use o olho para experimentar os itens compatíveis.",
     "Individual outfits, weapon skins and accessories can also be inspected with the same shortcuts. Use the eye to try on compatible items.",
     "También puedes consultar trajes, apariencias de armas y accesorios individuales con los mismos atajos. Usa el ojo para probar los objetos compatibles."
+  ],
+  [
+    "Abrir com Scroll (botão do meio)",
+    "Open with the mouse wheel button (middle button)",
+    "Abrir con la rueda (botón central)"
+  ],
+  [
+    "Opção do Scroll inválida.",
+    "Invalid mouse wheel button option.",
+    "Opción del botón central no válida."
+  ],
+  [
+    "Não foi possível salvar as preferências: {error}",
+    "Could not save preferences: {error}",
+    "No se pudieron guardar las preferencias: {error}"
+  ],
+  [
+    "Não foi possível salvar a opção do Scroll: {error}",
+    "Could not save the mouse wheel button option: {error}",
+    "No se pudo guardar la opción del botón central: {error}"
+  ],
+  [
+    "Deixe o tooltip do item visível e use Shift + clique esquerdo no ícone. Se a opção estiver marcada, também é possível apertar o Scroll (botão do meio). Girar a roda não abre a prévia. Ctrl+Alt+B abre esta janela para consulta manual.",
+    "Keep the item tooltip visible and use Shift + left-click on its icon. If enabled, you can also press the mouse wheel button. Scrolling does not open the preview. Ctrl+Alt+B opens this window for manual lookup.",
+    "Mantén visible la descripción del objeto y usa Mayús + clic izquierdo en su icono. Si la opción está activada, también puedes pulsar el botón central. Girar la rueda no abre la vista previa. Ctrl+Alt+B abre esta ventana para la consulta manual."
+  ],
+  [
+    "Inicializando Shift + clique esquerdo ou botão central…",
+    "Starting Shift + left-click or middle button…",
+    "Iniciando Mayús + clic izquierdo o botón central…"
+  ],
+  [
+    "Shift + clique esquerdo ou botão central com o cursor sobre o item disponível no TERA.",
+    "Shift + left-click or middle button over the item is available in TERA.",
+    "Mayús + clic izquierdo o botón central sobre el objeto disponible en TERA."
+  ],
+  [
+    "Leitor de Shift + clique esquerdo ou botão central com o cursor sobre o item encerrado.",
+    "Shift + left-click or middle button reader stopped.",
+    "Lector de Mayús + clic izquierdo o botón central cerrado."
+  ],
+  [
+    "Reinicie o Toolbox para carregar a atualização e habilitar esta opção.",
+    "Restart Toolbox to load the update and enable this option.",
+    "Reinicia Toolbox para cargar la actualización y habilitar esta opción."
   ]
 ]

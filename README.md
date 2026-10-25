@@ -8,14 +8,14 @@ Funciona com tooltips de itens do inventário, broker, TERA Rewards e outras loj
 
 1. Abra Toolbox e TERA em **janela ou sem bordas** e entre com seu personagem.
 2. Aponte o cursor para o ícone da caixa ou do cosmético. Aguarde o tooltip aparecer com o nome completo.
-3. Pressione **Ctrl sozinho**, esquerdo ou direito, **ou aperte o botão central do mouse (a rodinha)**. Não é necessário clicar com o botão esquerdo ou direito.
+3. Use **Shift + clique esquerdo** no ícone. Se **Abrir com a rodinha (botão do meio)** estiver marcado, você também pode apertar o botão central.
 4. Na janela do mod, clique no **olho** ao lado de um item compatível para experimentá-lo no personagem.
 
 Para um link do chat, abra o painel de propriedades do item e use o atalho com o cursor sobre o ícone desse painel. A leitura dentro da descrição também pode funcionar, desde que o título esteja legível; o ícone é o ponto recomendado.
 
-Os atalhos de consulta atuam com TERA em primeiro plano e o cursor sobre o jogo. Cada pressionamento consulta uma vez; segurar a tecla ou o botão não repete. Solte antes de consultar outro item. **Girar a rodinha não abre a prévia.** O atalho atual substitui o antigo Alt + clique.
+Os atalhos de consulta atuam com TERA em primeiro plano e o cursor sobre o jogo. Cada pressionamento consulta uma vez; segurar a tecla ou o botão não repete. Solte antes de consultar outro item. **Girar a rodinha não abre a prévia.** Ctrl sozinho e Alt + clique não são mais atalhos de consulta.
 
-O botão central continua sendo recebido pelo jogo. Se houver outra ação configurada para ele no TERA, use Ctrl como alternativa. Existe uma breve espera no Ctrl para descartar combinações rápidas com outras teclas; aguarde o tooltip antes de pressioná-lo.
+O botão central continua sendo recebido pelo jogo. Se houver outra ação configurada para ele no TERA, use Shift + clique esquerdo como alternativa. O clique esquerdo também continua sendo recebido pelo jogo.
 
 ## Caixas e cosméticos avulsos
 
@@ -25,7 +25,7 @@ O botão central continua sendo recebido pelo jogo. Se houver outra ação confi
 
 Os ícones são carregados de um pacote local de imagens incluído no mod. Alguns cosméticos específicos podem ficar sem ícone se a imagem ainda não estiver nesse pacote; a identificação e o botão de experimentar não dependem da imagem.
 
-Ao clicar no olho, as janelas do mod são ocultadas para deixar o personagem visível. Feche o provador pelos controles do próprio TERA. Para experimentar outro item, aponte para ele e use novamente Ctrl ou o botão central.
+Ao clicar no olho, as janelas do mod são ocultadas para deixar o personagem visível. Feche o provador pelos controles do próprio TERA. Para experimentar outro item, aponte para ele e use novamente Shift + clique esquerdo ou o botão central habilitado.
 
 O provador usa a aparência padrão do item; tinturas personalizadas de uma unidade não são reproduzidas. Efeitos, como pegadas, dependem do suporte da prévia nativa. O mod não compra, abre, equipa ou consome itens. A prévia é enviada apenas ao cliente pelo pacote `S_PREVIEW_ITEM`.
 
@@ -35,8 +35,8 @@ Digite os comandos abaixo no chat do jogo.
 
 | Atalho ou comando | Função |
 | --- | --- |
-| **Ctrl (apens)**, com o cursor sobre o item | Consultar o item com o tooltip visível. |
-| **scroll (rodinha do mouse)**, com o cursor sobre o item | Alternativa ao Ctrl para a mesma consulta. |
+| **Shift + clique esquerdo** no ícone | Consultar o item com o tooltip visível. |
+| **Scroll (roda/botão do meio)**: com o cursor sobre o item, aperte o botão do meio do mouse. | Consultar quando a opção da Scroll estiver habilitada. Girar a roda/botão não ativa a consulta. |
 | **Ctrl+Alt+B** | Abrir a janela completa. |
 | `/8 boxpreview` ou `/8 boxpreview gui` | Abrir a janela completa pelo chat. |
 | `/8 boxpreview ID` | Consultar uma caixa ou um cosmético pelo ID numérico. Exemplo: `/8 boxpreview 180910`. |
@@ -50,13 +50,17 @@ A janela completa permite consultar IDs e listas opcionais de **Inventário**, *
 
 Se Ctrl+Alt+B estiver ocupado por outro programa, use `/8 boxpreview`. Uma alteração apenas no README não exige recarregar o mod.
 
+## Opção da rodinha
+
+A opção **Abrir com Scroll (botão do meio)** fica no topo da janela pequena e também na janela completa. A escolha é salva em `config.json`, no campo booleano `data.openWithMiddleMouse`, e vale para novas consultas assim que a gravação é confirmada. O padrão é `true` (marcado) para instalações novas ou configurações sem essa preferência; desmarque se não quiser usar a rodinha além de Shift + clique esquerdo. Uma escolha `false` já salva continua respeitada. Ela é preservada após recarregar ou reiniciar o mod. Uma falha ao salvar é exibida na janela e não confirma uma preferência que não foi gravada.
+
 ## Idioma
 
 O seletor fica na janela completa e oferece **Automático**, **Português**, **English** e **Español (Latinoamérica)**. A janela pequena segue a mesma preferência.
 
 No modo automático, a interface segue o idioma do Windows; idiomas não suportados usam inglês. Uma escolha manual tem prioridade, atualiza as duas janelas e fica salva após recarregar o mod ou reiniciar Toolbox. Os nomes e as descrições dos itens continuam no idioma fornecido pelo cliente TERA.
 
-A preferência é armazenada localmente em `config.json`. Os valores de idioma são `auto`, `pt`, `en` e `es`. **Não publique nem copie esse arquivo sobre a configuração de outro usuário.** O mod cria os padrões no computador de cada pessoa.
+As preferências são armazenadas localmente em `config.json`, com versão de configuração 2. Os valores de idioma são `auto`, `pt`, `en` e `es`. **Não publique nem copie esse arquivo sobre a configuração de outro usuário.** O mod cria os padrões no computador de cada pessoa.
 
 ## Identificação e origem dos conteúdos
 
@@ -82,3 +86,14 @@ Nem toda caixa declara seu conteúdo no cliente ou no catálogo. Regras aleatór
 ## Diagnóstico e publicação
 
 O mod não modifica os arquivos do jogo nem injeta DLL/GPK. As capturas usadas no reconhecimento ficam temporariamente na memória. O leitor é encerrado no lobby ou ao descarregar o mod.
+
+## Atualização das preferências (0.4.11)
+
+Nesta atualização, reinicie o Toolbox uma vez para carregar a nova versão de configuração. Só copiar arquivos enquanto o Toolbox continua aberto pode deixar a interface nova ligada à lógica antiga. Se isso acontecer, a opção da rodinha fica indisponível com uma mensagem de reinício, em vez de aceitar um clique que não seria salvo. O comando de reload continua útil para revisões posteriores com a mesma versão de configuração.
+
+O campo `openWithMiddleMouse` é acrescentado pelo `settings_migrator.js` ao migrar a configuração 1 para 2. Instalações novas recebem os padrões pelo mesmo migrador. O primeiro carregamento salva a configuração migrada; a escolha da rodinha e o idioma continuam locais e são preservados nos próximos carregamentos. Um valor booleano existente é respeitado. O instalador e o sincronizador não distribuem nem substituem o `config.json` pessoal.
+
+
+## Inicialização das preferências (0.4.12)
+
+O componente global do mod salva a configuração migrada assim que o Toolbox carrega o módulo, antes de conectar ao TERA. Não é necessário entrar no jogo, abrir a prévia ou marcar a opção para criar o campo. A rodinha vem ativada quando ainda não existe uma escolha salva; um valor `false` existente é preservado. Marcar/desmarcar na janela muda e salva essa escolha imediatamente. Idioma, valores booleanos já existentes e demais preferências pessoais continuam preservados. O instalador não altera nem distribui o config pessoal.

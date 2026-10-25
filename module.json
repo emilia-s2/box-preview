@@ -2,13 +2,13 @@
     "name": "box-preview",
     "author": "emilia-s2",
     "description": "Prévia dinâmica de conteúdos e variantes de caixas pelo DataCenter do cliente conectado, sem consumir itens.",
-    "version": "0.4.9",
+    "version": "0.4.13",
     "disableAutoUpdate": false,
     "options": {
         "niceName": "Box Preview",
         "guiName": "Prévia de caixas",
         "reloadable": true,
-        "settingsVersion": 1,
+        "settingsVersion": 2,
         "settingsFile": "config.json",
         "settingsMigrator": "settings_migrator.js"
     },

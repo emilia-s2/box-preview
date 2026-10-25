@@ -65,9 +65,9 @@
     "Consultar contenido"
   ],
   [
-    "Deixe o tooltip da caixa visível, segure Alt e clique com o botão esquerdo no ícone ou nas propriedades do tooltip do item. A janela de conteúdo abre sobre o TERA, sem escolher uma lista. Funciona em janela ou sem bordas; nenhum item é aberto ou comprado pelo mod. Ctrl+Alt+B abre esta GUI para consulta manual.",
-    "Keep the box tooltip visible, hold Alt and left-click the item icon or its tooltip properties. The contents window opens above TERA, without selecting a list. Works in windowed or borderless mode; the mod does not open or buy items. Ctrl+Alt+B opens this window for manual lookup.",
-    "Deja visible la descripción de la caja, mantén Alt y haz clic izquierdo en el ícono o en sus propiedades. La ventana de contenido aparece sobre TERA sin seleccionar una lista. Funciona en modo ventana o sin bordes; el mod no abre ni compra objetos. Ctrl+Alt+B abre esta ventana para consultas manuales."
+    "Deixe o tooltip da caixa visível, aponte o cursor para a caixa, aguarde o tooltip aparecer e pressione Ctrl sozinho ou aperte a rodinha (botão central). A janela de conteúdo abre sobre o TERA, sem escolher uma lista. Funciona em janela ou sem bordas; nenhum item é aberto ou comprado pelo mod. Ctrl+Alt+B abre esta GUI para consulta manual.",
+    "Keep the box tooltip visible, point at the box, wait for its tooltip and press Ctrl alone or click the mouse wheel (middle button). The contents window opens above TERA, without selecting a list. Works in windowed or borderless mode; the mod does not open or buy items. Ctrl+Alt+B opens this window for manual lookup.",
+    "Deja visible la descripción de la caja, apunta a la caja, espera su descripción y pulsa Ctrl solo o presiona la rueda (botón central). La ventana de contenido aparece sobre TERA sin seleccionar una lista. Funciona en modo ventana o sin bordes; el mod no abre ni compra objetos. Ctrl+Alt+B abre esta ventana para consultas manuales."
   ],
   [
     "Listas recebidas — consulta opcional",
@@ -140,9 +140,9 @@
     "Cómo funciona esta vista previa"
   ],
   [
-    "Alt + clique esquerdo no ícone ou no tooltip do item é lido por um leitor externo, com uma alternativa por Raw Input. O mod não envia cliques, compra, abertura ou uso de itens ao jogo. A janela de conteúdo abre com foco sobre o TERA. Quando o proxy já recebeu o ID na posição clicada, a busca dispensa captura de tela e OCR.",
-    "Alt + left-click on the icon or item tooltip is detected by an external listener, with a Raw Input fallback. The mod does not send clicks, purchases, opening or item-use requests to the game. The contents window opens above TERA with focus. When the proxy already has the ID at the clicked position, identification does not need OCR.",
-    "Alt + clic izquierdo en el ícono o en la descripción del objeto se detecta con un lector externo y una alternativa por Raw Input. El mod no envía clics, compras, aperturas ni usos de objetos al juego. La ventana de contenido aparece sobre TERA con el foco. Cuando el proxy ya tiene el ID de la posición seleccionada, no se necesita OCR."
+    "Ctrl ou botão central com o cursor sobre a caixa é lido por um leitor externo, com uma alternativa por Raw Input. O mod não envia cliques, compra, abertura ou uso de itens ao jogo. A janela de conteúdo abre com foco sobre o TERA. Quando o proxy já recebeu o ID na posição apontada, a busca dispensa captura de tela e OCR.",
+    "Ctrl or middle-click while pointing at the box is detected by an external listener, with a Raw Input fallback. The mod does not send clicks, purchases, opening or item-use requests to the game. The contents window opens above TERA with focus. When the proxy already has the ID at the pointed position, identification does not need OCR.",
+    "Ctrl o botón central con el cursor sobre la caja se detecta con un lector externo y una alternativa por Raw Input. El mod no envía clics, compras, aperturas ni usos de objetos al juego. La ventana de contenido aparece sobre TERA con el foco. Cuando el proxy ya tiene el ID de la posición seleccionada, no se necesita OCR."
   ],
   [
     "Quando não há ID recebido, uma imagem temporária da janela é lida pelo reconhecimento de texto do Windows e descartada, sem upload ou gravação em disco. O título é associado aos nomes e IDs do cliente conectado; nomes ilegíveis ou ambíguos geram um aviso.",
@@ -410,9 +410,9 @@
     "Servidor conectado"
   ],
   [
-    "Inicializando Alt + clique esquerdo…",
-    "Starting Alt + left-click…",
-    "Iniciando Alt + clic izquierdo…"
+    "Inicializando Ctrl ou botão central com o cursor sobre a caixa…",
+    "Starting Ctrl or middle-click while pointing at the box…",
+    "Iniciando Ctrl o botón central con el cursor sobre la caja…"
   ],
   [
     "Identificando a caixa…",
@@ -430,9 +430,9 @@
     "Verificando el contenido de la caja…"
   ],
   [
-    "Alt + clique esquerdo disponível no TERA.",
-    "Alt + left-click is available in TERA.",
-    "Alt + clic izquierdo disponible en TERA."
+    "Ctrl ou botão central com o cursor sobre a caixa disponível no TERA.",
+    "Ctrl or middle-click while pointing at the box is available in TERA.",
+    "Ctrl o botón central con el cursor sobre la caja disponible en TERA."
   ],
   [
     "Entre no mundo antes de consultar o cliente.",
@@ -615,9 +615,9 @@
     "Se encontró más de un título de objeto; acerca el mouse a la caja para mostrar solo su descripción."
   ],
   [
-    "Não consegui identificar com segurança o título do tooltip. Deixe-o visível e tente Alt + clique esquerdo novamente.",
-    "Could not safely identify the tooltip title. Keep it visible and try Alt + left-click again.",
-    "No se pudo identificar con seguridad el título de la descripción. Déjala visible e intenta Alt + clic izquierdo de nuevo."
+    "Não consegui identificar com segurança o título do tooltip. Deixe-o visível e tente Ctrl ou botão central com o cursor sobre a caixa novamente.",
+    "Could not safely identify the tooltip title. Keep it visible and try Ctrl or middle-click while pointing at the box again.",
+    "No se pudo identificar con seguridad el título de la descripción. Déjala visible e intenta Ctrl o botón central con el cursor sobre la caja de nuevo."
   ],
   [
     "Muitos itens têm esse nome; não foi possível identificar a caixa com segurança.",
@@ -640,8 +640,8 @@
     "No se identificó ningún objeto."
   ],
   [
-    "O mouse saiu da posição clicada antes da leitura terminar.",
-    "The mouse left the clicked position before reading finished.",
+    "O mouse saiu da posição apontada antes da leitura terminar.",
+    "The mouse left the pointed position before reading finished.",
     "El mouse salió de la posición seleccionada antes de terminar la lectura."
   ],
   [
@@ -660,9 +660,9 @@
     "Se agotó el tiempo para confirmar la captura."
   ],
   [
-    "Esta leitura foi substituída por outro clique.",
-    "This read was replaced by another click.",
-    "Otro clic reemplazó esta lectura."
+    "Esta leitura foi substituída por outra consulta.",
+    "This read was replaced by another lookup.",
+    "Otra consulta reemplazó esta lectura."
   ],
   [
     "O Windows não informou a posição do mouse.",
@@ -830,9 +830,9 @@
     "El lector de gestos devolvió una respuesta no válida."
   ],
   [
-    "Leitor de Alt + clique esquerdo encerrado.",
-    "Alt + left-click listener closed.",
-    "Lector de Alt + clic izquierdo cerrado."
+    "Leitor de Ctrl ou botão central com o cursor sobre a caixa encerrado.",
+    "Ctrl or middle-click while pointing at the box listener closed.",
+    "Lector de Ctrl o botón central con el cursor sobre la caja cerrado."
   ],
   [
     "O ID nativo não precisa de leitura de imagem.",
@@ -905,8 +905,8 @@
     "Solicitud de lectura no válida."
   ],
   [
-    "Deixe a caixa visível no TERA e tente novamente. Outra janela cobriu o ponto clicado.",
-    "Keep the box visible in TERA and try again. Another window covered the clicked point.",
+    "Deixe a caixa visível no TERA e tente novamente. Outra janela cobriu o ponto apontado.",
+    "Keep the box visible in TERA and try again. Another window covered the pointed point.",
     "Deja la caja visible en TERA e inténtalo de nuevo. Otra ventana cubrió el punto seleccionado."
   ],
   [
@@ -920,9 +920,9 @@
     "El lector no confirmó la apertura del menú."
   ],
   [
-    "O leitor de clique encontrou uma falha.",
-    "The click listener encountered an error.",
-    "El lector de clics encontró un error."
+    "O leitor do atalho encontrou uma falha.",
+    "The shortcut listener encountered an error.",
+    "El lector del atajo encontró un error."
   ],
   [
     "O processo alvo não é TERA.exe.",
@@ -930,12 +930,12 @@
     "El proceso de destino no es TERA.exe."
   ],
   [
-    "O Windows não permitiu registrar Alt + clique esquerdo.",
-    "Windows did not allow registering Alt + left-click.",
-    "Windows no permitió registrar Alt + clic izquierdo."
+    "O Windows não permitiu registrar Ctrl ou botão central com o cursor sobre a caixa.",
+    "Windows did not allow registering Ctrl or middle-click while pointing at the box.",
+    "Windows no permitió registrar Ctrl o botón central con el cursor sobre la caja."
   ],
   [
-    "Falha ao iniciar o leitor de mouse.",
+    "Falha ao iniciar o leitor de teclado.",
     "Could not start the mouse listener.",
     "No se pudo iniciar el lector del mouse."
   ],
@@ -978,5 +978,35 @@
     "Não foi possível abrir o provador do cliente.",
     "Could not open the client fitting preview.",
     "No se pudo abrir la vista previa de ropa del cliente."
+  ],
+  [
+    "Prévia de aparência",
+    "Appearance preview",
+    "Vista previa de apariencia"
+  ],
+  [
+    "Aparência individual",
+    "Individual appearance",
+    "Apariencia individual"
+  ],
+  [
+    "Use o olho para experimentar este item. Nenhum item é comprado, equipado ou consumido.",
+    "Use the eye to try on this item. No item is purchased, equipped or consumed.",
+    "Usa el ojo para probar este objeto. No se compra, equipa ni consume ningún objeto."
+  ],
+  [
+    "Este item não é compatível com a raça, gênero ou classe do personagem.",
+    "This item is not compatible with the character’s race, gender or class.",
+    "Este objeto no es compatible con la raza, género o clase del personaje."
+  ],
+  [
+    "Entre no mundo para verificar a compatibilidade deste item.",
+    "Enter the world to check this item’s compatibility.",
+    "Entra al mundo para comprobar la compatibilidad del objeto."
+  ],
+  [
+    "Roupas, skins de armas e acessórios avulsos também podem ser consultados pelos mesmos atalhos. Use o olho para experimentar os itens compatíveis.",
+    "Individual outfits, weapon skins and accessories can also be inspected with the same shortcuts. Use the eye to try on compatible items.",
+    "También puedes consultar trajes, apariencias de armas y accesorios individuales con los mismos atajos. Usa el ojo para probar los objetos compatibles."
   ]
 ]

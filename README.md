@@ -44,7 +44,7 @@ Digite os comandos abaixo no chat do jogo.
 | `/8 boxpreview refresh` | Limpar os dados de consulta em cache e atualizar a lista da origem selecionada, se a janela completa estiver aberta. |
 | `/8 boxpreview capture` | Alternativa de captura: aguardar por até 10 segundos um novo ID recebido do jogo ao apontar para outro item ou abrir seu tooltip. Não força o jogo a enviar um ID. |
 | `/8 toolbox reload box-preview` | Recarregar o mod atualizado sem reiniciar TERA ou Toolbox. |
-| **Escape** ou **×** na janela pequena | Fechar a janela de consulta. |
+| **Escape** ou **X da barra de título** | Fechar a janela de consulta. |
 
 A janela completa permite consultar IDs e listas opcionais de **Inventário**, **TERA Rewards** e **Outras lojas**. Essas listas dependem dos dados já recebidos pelo cliente e não precisam conter todos os itens disponíveis. Após recarregar o mod, reabra a loja se precisar receber sua lista novamente.
 

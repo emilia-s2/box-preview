@@ -93,6 +93,9 @@ public static partial class BoxPreviewInput {
 
  public static bool CursorStable(int x,int y,int currentX,int currentY) { long dx=(long)x-currentX,dy=(long)y-currentY;return Math.Abs(dx)<=12&&Math.Abs(dy)<=12&&dx*dx+dy*dy<=144; }
  public static bool SnapshotMatches(long age,int x,int y,int currentX,int currentY,bool sameWindow) { return sameWindow&&age>=0&&age<=300&&Math.Abs((long)x-currentX)<=2&&Math.Abs((long)y-currentY)<=2; }
+ // Active reads tolerate small hand movement relative to the original click.
+ // Cached frames remain strict: widening them could reuse a neighboring item's tooltip.
+ public static bool ClickSnapshotMatches(long age,int x,int y,int currentX,int currentY,bool sameWindow) { return sameWindow&&age>=0&&age<=300&&CursorStable(x,y,currentX,currentY); }
  static bool UpdateHover(bool eligible,IntPtr window,POINT point,long now,bool alt){
   if(!eligible){hoverTracked=false;DropSnapshot();return false;}
   if(!hoverTracked||hoverWindow!=window||!SnapshotMatches(0,hoverPoint.x,hoverPoint.y,point.x,point.y,true)){DropSnapshot();hoverTracked=true;hoverPoint=point;hoverWindow=window;hoverSince=now;nextSnapshot=0;}
@@ -102,7 +105,7 @@ public static partial class BoxPreviewInput {
  public static bool Duplicate(string source,string previous,long delta,int x,int y,int oldX,int oldY) { return source!=previous&&delta>=0&&delta<120&&Math.Abs(x-oldX)<=2&&Math.Abs(y-oldY)<=2; }
  public static int Command(string line,int ticket) { string[] parts=line.Split(' ');int received;if(parts.Length!=2||!int.TryParse(parts[1],out received)||received!=ticket)return -1;return parts[0]=="direct"?2:parts[0]=="capture"?1:parts[0]=="skip"?0:-1; }
  static void Output(string json) { lock(outputLock){Console.WriteLine(json);Console.Out.Flush();} }
- static string Health(string eventName) { return "{\"event\":\""+eventName+"\",\"version\":\"0.4.10\",\"targetPid\":"+target+",\"readerPid\":"+Process.GetCurrentProcess().Id+",\"hookRegistered\":"+"false"+",\"rawRegistered\":"+(rawActive?"true":"false")+",\"repairs\":"+0+",\"accepted\":"+accepted+",\"warmedFrames\":"+warmedFrames+",\"cachedClicks\":"+cachedClicks+",\"immediateClicks\":"+immediateClicks+",\"source\":\""+lastSource+"\"}"; }
+ static string Health(string eventName) { return "{\"event\":\""+eventName+"\",\"version\":\"0.4.14\",\"targetPid\":"+target+",\"readerPid\":"+Process.GetCurrentProcess().Id+",\"hookRegistered\":"+"false"+",\"rawRegistered\":"+(rawActive?"true":"false")+",\"repairs\":"+0+",\"accepted\":"+accepted+",\"warmedFrames\":"+warmedFrames+",\"cachedClicks\":"+cachedClicks+",\"immediateClicks\":"+immediateClicks+",\"source\":\""+lastSource+"\"}"; }
  static bool Eligible(POINT point,bool alt,out IntPtr window) {
   window=GetAncestor(WindowFromPoint(point),2);uint foreground,under;
   GetWindowThreadProcessId(GetForegroundWindow(),out foreground);GetWindowThreadProcessId(window,out under);
@@ -126,12 +129,12 @@ public static partial class BoxPreviewInput {
    }
   }
  }
- static Frame ReadSnapshot(IntPtr window,POINT point){
+ static Frame ReadSnapshot(IntPtr window,POINT point,bool clickCapture=false){
   if(shuttingDown)return null;
   IntPtr currentWindow;if(!Eligible(point,true,out currentWindow)||currentWindow!=window)return null;
   Rectangle area=Rectangle.Intersect(ClientArea(window),new Rectangle(point.x-800,point.y-900,1600,1300));if(area.Width<100||area.Height<100)return null;
   Frame frame=new Frame{rect=area,point=point,window=window,at=clock.ElapsedMilliseconds,image=new Bitmap(area.Width,area.Height,PixelFormat.Format32bppArgb)};
-  try{using(Graphics drawing=Graphics.FromImage(frame.image)){drawing.CopyFromScreen(area.Left,area.Top,0,0,area.Size,CopyPixelOperation.SourceCopy);MaskToolbox(drawing,area,window);}POINT current;if(shuttingDown||!GetCursorPos(out current)||!SnapshotMatches(clock.ElapsedMilliseconds-frame.at,point.x,point.y,current.x,current.y,true)||!Eligible(point,true,out currentWindow)||currentWindow!=window){frame.Dispose();return null;}return frame;}catch{frame.Dispose();return null;}
+  try{using(Graphics drawing=Graphics.FromImage(frame.image)){drawing.CopyFromScreen(area.Left,area.Top,0,0,area.Size,CopyPixelOperation.SourceCopy);MaskToolbox(drawing,area,window);}POINT current;if(shuttingDown||!GetCursorPos(out current)||!(clickCapture?ClickSnapshotMatches(clock.ElapsedMilliseconds-frame.at,point.x,point.y,current.x,current.y,true):SnapshotMatches(clock.ElapsedMilliseconds-frame.at,point.x,point.y,current.x,current.y,true))||!Eligible(current,true,out currentWindow)||currentWindow!=window){frame.Dispose();return null;}return frame;}catch{frame.Dispose();return null;}
  }
  static void DropSnapshot(){lock(snapshotLock){if(snapshot!=null){snapshot.Dispose();snapshot=null;}}}
  static Frame TakeSnapshot(IntPtr window,POINT point,out long age){
@@ -178,9 +181,9 @@ public static partial class BoxPreviewInput {
    GetWindowThreadProcessId(foregroundWindow,out foreground);GetWindowThreadProcessId(underWindow,out under);
    if(request==null){reason="stale-request";throw new Exception();}
    age=clock.ElapsedMilliseconds-request.at;dx=(long)point.x-request.point.x;dy=(long)point.y-request.point.y;
-   reason=RetryReason(ticket,request.seq,age,known,SnapshotMatches(0,request.point.x,request.point.y,point.x,point.y,true),underWindow==request.window,foreground,under,target,owner);
+   reason=RetryReason(ticket,request.seq,age,known,CursorStable(request.point.x,request.point.y,point.x,point.y),underWindow==request.window,foreground,under,target,owner);
    if(reason!="")throw new Exception();
-   reason="capture-changed";frame=ReadSnapshot(request.window,request.point);if(frame==null||activeRequest!=request)throw new Exception();SendFrame(frame,request.point,ticket,request.source,"retry",0,"retry-frame");
+   reason="capture-changed";frame=ReadSnapshot(request.window,request.point,true);if(frame==null||activeRequest!=request)throw new Exception();SendFrame(frame,request.point,ticket,request.source,"retry",0,"retry-frame");
   }catch{try{Output("{\"event\":\"retry-error\",\"seq\":"+ticket+",\"reason\":\""+reason+"\",\"ageMs\":"+age+",\"cursorDx\":"+dx+",\"cursorDy\":"+dy+",\"foregroundPid\":"+foreground+",\"underPid\":"+under+",\"error\":\""+RetryMessage(reason)+"\"}");}catch{}}finally{if(frame!=null)frame.Dispose();Interlocked.Exchange(ref retryBusy,0);}});
  }
  static void Signal(IntPtr window,POINT point,string source) {
@@ -194,7 +197,7 @@ public static partial class BoxPreviewInput {
   ThreadPool.QueueUserWorkItem(delegate {
    Frame clicked=null;
    try{
-    clicked=ReadSnapshot(window,point);
+    clicked=ReadSnapshot(window,point,true);
     int ticket=Interlocked.Increment(ref sequence);prepared.Reset();mode=0;
     Output("{\"event\":\"prepare\",\"seq\":"+ticket+",\"inputSource\":\""+source+"\",\"x\":"+point.x+",\"y\":"+point.y+"}");
     if(!prepared.Wait(1800)){Output("{\"event\":\"error\",\"error\":\"O leitor não confirmou a abertura do menu.\"}");return;}

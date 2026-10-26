@@ -16,6 +16,7 @@ public static partial class BoxPreviewInput {
  delegate bool EnumWindow(IntPtr window,IntPtr data);
  [DllImport("user32.dll")] static extern short GetAsyncKeyState(int key);
  [DllImport("user32.dll")] static extern IntPtr GetForegroundWindow();
+ [DllImport("user32.dll")] static extern bool SetForegroundWindow(IntPtr window);
  [DllImport("user32.dll")] static extern bool GetCursorPos(out POINT point);
  [DllImport("user32.dll")] static extern IntPtr WindowFromPoint(POINT point);
  [DllImport("user32.dll")] static extern IntPtr GetAncestor(IntPtr window,uint flags);
@@ -78,6 +79,32 @@ public static partial class BoxPreviewInput {
  }
  public static bool MiddleCommand(string line){if(line=="middle 1"){middleEnabled=true;return true;}if(line=="middle 0"){middleEnabled=false;return true;}return false;}
  public static bool MiddleEnabled(){return middleEnabled;}
+ // Transfer focus while the caller is still foreground; report actual activation.
+ public static bool FocusAllowed(uint foreground,uint expected,uint parent){return expected>0&&parent>0&&(foreground==0||foreground==expected||foreground==parent);}
+ static long UtcMilliseconds(){return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();}
+ static string FocusGame(long expires){
+  if(shuttingDown||probe)return "reader-stopped";
+  if(expires<UtcMilliseconds()||expires>UtcMilliseconds()+1000)return "expired";
+  uint foreground;GetWindowThreadProcessId(GetForegroundWindow(),out foreground);
+  if(!FocusAllowed(foreground,target,owner))return "other-app";
+  if(foreground==target)return "focused";
+  IntPtr game=IntPtr.Zero;
+  EnumWindows(delegate(IntPtr window,IntPtr unused){uint pid;GetWindowThreadProcessId(window,out pid);if(pid==target&&IsWindowVisible(window)&&!IsIconic(window)&&GetWindow(window,4)==IntPtr.Zero){RECT area;if(GetClientRect(window,out area)&&area.right>area.left&&area.bottom>area.top){game=window;return false;}}return true;},IntPtr.Zero);
+  if(game==IntPtr.Zero)return "game-window-unavailable";
+  GetWindowThreadProcessId(GetForegroundWindow(),out foreground);
+  if(!FocusAllowed(foreground,target,owner))return "other-app";
+  if(expires<UtcMilliseconds())return "expired";
+  if(foreground!=target&&!SetForegroundWindow(game))return "windows-refused";
+  // Activation across input queues is asynchronous. Check briefly, never resend.
+  long until=Math.Min(expires, UtcMilliseconds()+150);
+  do{GetWindowThreadProcessId(GetForegroundWindow(),out foreground);if(foreground==target)return "focused";if(!FocusAllowed(foreground,target,owner))return "other-app";Thread.Sleep(10);}while(!shuttingDown&&UtcMilliseconds()<until);
+  return "activation-unconfirmed";
+ }
+ static void FocusCommand(int ticket,long expires){
+  string reason;try{reason=FocusGame(expires);}catch{reason="focus-error";}
+  uint foreground;GetWindowThreadProcessId(GetForegroundWindow(),out foreground);
+  Output("{\"event\":\"focus-result\",\"seq\":"+ticket+",\"ok\":"+(reason=="focused"?"true":"false")+",\"reason\":\""+reason+"\",\"foregroundPid\":"+foreground+"}");
+ }
  static bool Shift(){return ModifierHeld(GetAsyncKeyState(0x10),GetAsyncKeyState(0xA0),GetAsyncKeyState(0xA1));}
  static bool OtherModifier(){return ModifierHeld(GetAsyncKeyState(0x11),GetAsyncKeyState(0xA2),GetAsyncKeyState(0xA3))||ModifierHeld(GetAsyncKeyState(0x12),GetAsyncKeyState(0xA4),GetAsyncKeyState(0xA5))||ModifierHeld(0,GetAsyncKeyState(0x5B),GetAsyncKeyState(0x5C));}
  static void HandleMouse(ushort buttons){
@@ -105,7 +132,7 @@ public static partial class BoxPreviewInput {
  public static bool Duplicate(string source,string previous,long delta,int x,int y,int oldX,int oldY) { return source!=previous&&delta>=0&&delta<120&&Math.Abs(x-oldX)<=2&&Math.Abs(y-oldY)<=2; }
  public static int Command(string line,int ticket) { string[] parts=line.Split(' ');int received;if(parts.Length!=2||!int.TryParse(parts[1],out received)||received!=ticket)return -1;return parts[0]=="direct"?2:parts[0]=="capture"?1:parts[0]=="skip"?0:-1; }
  static void Output(string json) { lock(outputLock){Console.WriteLine(json);Console.Out.Flush();} }
- static string Health(string eventName) { return "{\"event\":\""+eventName+"\",\"version\":\"0.4.14\",\"targetPid\":"+target+",\"readerPid\":"+Process.GetCurrentProcess().Id+",\"hookRegistered\":"+"false"+",\"rawRegistered\":"+(rawActive?"true":"false")+",\"repairs\":"+0+",\"accepted\":"+accepted+",\"warmedFrames\":"+warmedFrames+",\"cachedClicks\":"+cachedClicks+",\"immediateClicks\":"+immediateClicks+",\"source\":\""+lastSource+"\"}"; }
+ static string Health(string eventName) { return "{\"event\":\""+eventName+"\",\"version\":\"0.4.18\",\"targetPid\":"+target+",\"readerPid\":"+Process.GetCurrentProcess().Id+",\"hookRegistered\":"+"false"+",\"rawRegistered\":"+(rawActive?"true":"false")+",\"repairs\":"+0+",\"accepted\":"+accepted+",\"warmedFrames\":"+warmedFrames+",\"cachedClicks\":"+cachedClicks+",\"immediateClicks\":"+immediateClicks+",\"source\":\""+lastSource+"\"}"; }
  static bool Eligible(POINT point,bool alt,out IntPtr window) {
   window=GetAncestor(WindowFromPoint(point),2);uint foreground,under;
   GetWindowThreadProcessId(GetForegroundWindow(),out foreground);GetWindowThreadProcessId(window,out under);
@@ -253,7 +280,7 @@ public static partial class BoxPreviewInput {
    rawActive=raw.Registered;
    if(!rawActive){Output("{\"event\":\"error\",\"error\":\"O Windows não permitiu registrar Shift + clique esquerdo ou botão central.\"}");return;}
    Output(Health("ready"));
-   if(!probe){Thread commands=new Thread(new ThreadStart(delegate{string line;while((line=Console.ReadLine())!=null){if(MiddleCommand(line))continue;string[] parts=line.Split(' ');int ticket;if(parts.Length==2&&parts[0]=="retry"&&int.TryParse(parts[1],out ticket)){RetryFrame(ticket);continue;}int selected=Command(line,sequence);if(selected>=0){mode=selected;prepared.Set();}}Application.Exit();}));commands.IsBackground=true;commands.Start();}
+   if(!probe){Thread commands=new Thread(new ThreadStart(delegate{string line;while((line=Console.ReadLine())!=null){if(MiddleCommand(line))continue;string[] parts=line.Split(' ');int ticket;long expires;if(parts.Length==3&&parts[0]=="focus-game"&&int.TryParse(parts[1],out ticket)&&ticket>0&&long.TryParse(parts[2],out expires)){FocusCommand(ticket,expires);continue;}if(parts.Length==2&&parts[0]=="retry"&&int.TryParse(parts[1],out ticket)){RetryFrame(ticket);continue;}int selected=Command(line,sequence);if(selected>=0){mode=selected;prepared.Set();}}Application.Exit();}));commands.IsBackground=true;commands.Start();}
    System.Windows.Forms.Timer timer=new System.Windows.Forms.Timer();timer.Interval=50;long nextHealth=0;
    timer.Tick+=delegate{
     if(probe&&clock.ElapsedMilliseconds-started>=probeDuration){Application.Exit();return;}

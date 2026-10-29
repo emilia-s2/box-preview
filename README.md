@@ -4,6 +4,24 @@
 
 Funciona com tooltips de itens do inventário, broker, TERA Rewards e outras lojas. Para itens linkados no chat, abra primeiro o painel de propriedades do próprio TERA. Não é necessário possuir o item nem digitar seu ID no uso pelos atalhos.
 
+## Demonstrações
+
+### Caixas no broker
+
+Consulte o conteúdo de uma caixa e alterne entre as variantes compatíveis com seu personagem e a lista completa.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/emilia-s2/box-preview/assets/boxes-broker.gif" alt="Box Preview: consulta de caixas de roupas e skins de armas no broker" />
+</p>
+
+### Cosméticos avulsos no TERA Rewards
+
+Consulte também itens fora de caixas, como máscaras e outros acessórios, e use o olho para abrir a prévia nativa quando o item for compatível.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/emilia-s2/box-preview/assets/cosmetics-rewards.gif" alt="Box Preview: consulta de cosméticos avulsos no TERA Rewards" />
+</p>
+
 ## Uso rápido
 
 1. Abra Toolbox e TERA em **janela ou sem bordas** e entre com seu personagem.
